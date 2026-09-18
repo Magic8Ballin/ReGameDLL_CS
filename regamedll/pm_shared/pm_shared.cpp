@@ -11,6 +11,7 @@ char pm_grgchTextureType[MAX_TEXTURES];
 
 playermove_t *pmove = nullptr;
 BOOL g_onladder = FALSE;
+const float landing_momentum_scale = 0.70f;
 
 #ifdef REGAMEDLL_API
 static CCSPlayer *pmoveplayer = nullptr;
@@ -1055,27 +1056,6 @@ void PM_WalkMove()
 	float downdist, updist;
 
 	pmtrace_t trace;
-
-	// jump penalty
-	if (pmove->fuser2 > 0.0)
-	{
-		real_t flRatio = (100 - pmove->fuser2 * 0.001 * 19) * 0.01;
-
-#ifdef REGAMEDLL_ADD
-		// change stamina restoration speed by fps reference
-		if (stamina_restore_rate.value > 0.0f)
-		{
-			real_t flReferenceFrametime = 1.0f / stamina_restore_rate.value;
-
-			float flFrametimeRatio = pmove->frametime / flReferenceFrametime;
-
-			flRatio = pow(flRatio, flFrametimeRatio);
-		}
-#endif
-
-		pmove->velocity[0] *= flRatio;
-		pmove->velocity[1] *= flRatio;
-	}
 
 	// Copy movement amounts
 	fmove = pmove->cmd.forwardmove;
@@ -3321,6 +3301,8 @@ void PM_PlayerMove(qboolean server)
 				pmove->oldbuttons &= ~IN_JUMP;
 			}
 
+			qboolean wasAirborne = (pmove->onground == -1);
+
 			// Fricion is handled before we add in any base velocity. That way, if we are on a conveyor,
 			// we don't slow when standing still, relative to the conveyor.
 			if (pmove->onground != -1)
@@ -3353,6 +3335,12 @@ void PM_PlayerMove(qboolean server)
 
 			// Make sure velocity is valid.
 			PM_CheckVelocity();
+
+			if (wasAirborne && pmove->onground != -1)
+			{
+				pmove->velocity[0] *= landing_momentum_scale;
+				pmove->velocity[1] *= landing_momentum_scale;
+			}
 
 			// Add any remaining gravitational component.
 			if (!PM_InWater())
