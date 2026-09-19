@@ -174,7 +174,7 @@ void CDEAGLE::DEAGLEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 #endif
 
 	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireDeagle, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
-		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), m_iClip == 0, FALSE);
+		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), m_iClip == 0, TRUE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 
@@ -184,7 +184,7 @@ void CDEAGLE::DEAGLEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 	}
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.8f;
-	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex);
+	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex, m_pPlayer->random_seed);
 	m_pPlayer->pev->punchangle.x -= recoil.vertical * config.viewScale;
 	m_pPlayer->pev->punchangle.y += recoil.horizontal * config.viewScale;
 	gw::CommitShot(config, m_ModernState, gpGlobals->time);
