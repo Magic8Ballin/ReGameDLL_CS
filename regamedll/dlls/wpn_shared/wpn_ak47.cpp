@@ -2,6 +2,31 @@
 
 LINK_ENTITY_TO_CLASS(weapon_ak47, CAK47, CCSAK47)
 
+static const gw::WeaponMechanicsConfig &AK47Mechanics()
+{
+	static bool loaded = false;
+	static gw::WeaponMechanicsConfig config;
+	if (!loaded)
+	{
+		loaded = true;
+		config = gw::Defaults(true);
+		int length = 0;
+		char *json = (char *)LOAD_FILE_FOR_ME("configs/weapons/ak47.json", &length);
+		gw::WeaponMechanicsConfig parsed;
+		if (json && gw::ParseConfig(json, parsed)) config = parsed;
+		else ALERT(at_console, "Gloveworks: invalid/missing configs/weapons/ak47.json; using safe defaults\n");
+		if (json) FREE_FILE(json);
+	}
+	return config;
+}
+
+static void ResetAK47Mechanics(CAK47 *weapon)
+{
+	weapon->m_ModernState.firePenalty = 0.0f;
+	weapon->m_ModernState.recoilIndex = 0.0f;
+	weapon->m_ModernState.lastShotTime = 0.0f;
+}
+
 void CAK47::Spawn()
 {
 	Precache();
@@ -12,6 +37,7 @@ void CAK47::Spawn()
 	m_iDefaultAmmo = AK47_DEFAULT_GIVE;
 	m_flAccuracy = 0.2f;
 	m_iShotsFired = 0;
+	ResetAK47Mechanics(this);
 
 #ifdef REGAMEDLL_API
 	CSPlayerWeapon()->m_flBaseDamage = AK47_DAMAGE;
@@ -60,6 +86,7 @@ BOOL CAK47::Deploy()
 {
 	m_flAccuracy = 0.2f;
 	m_iShotsFired = 0;
+	ResetAK47Mechanics(this);
 	iShellOn = 1;
 
 	return DefaultDeploy("models/v_ak47.mdl", "models/p_ak47.mdl", AK47_DRAW, "ak47", UseDecrement() != FALSE);
@@ -72,18 +99,12 @@ void CAK47::SecondaryAttack()
 
 void CAK47::PrimaryAttack()
 {
-	if (!(m_pPlayer->pev->flags & FL_ONGROUND))
-	{
-		AK47Fire(0.04 + (0.4 * m_flAccuracy), 0.0955, FALSE);
-	}
-	else if (m_pPlayer->pev->velocity.Length2D() > 140)
-	{
-		AK47Fire(0.04 + (0.07 * m_flAccuracy), 0.0955, FALSE);
-	}
-	else
-	{
-		AK47Fire(0.0275 * m_flAccuracy, 0.0955, FALSE);
-	}
+	const gw::WeaponMechanicsConfig &config = AK47Mechanics();
+	gw::UpdateState(config, m_ModernState, gpGlobals->time, (m_pPlayer->pev->flags & FL_DUCKING) != 0);
+	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(),
+		GetMaxSpeed(), (m_pPlayer->pev->flags & FL_DUCKING) != 0, (m_pPlayer->pev->flags & FL_ONGROUND) != 0,
+		m_pPlayer->pev->movetype == MOVETYPE_FLY);
+	AK47Fire(inaccuracy, config.cycleTime, FALSE);
 }
 
 void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
@@ -92,13 +113,6 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	int flag;
 
 	m_bDelayFire = true;
-	m_iShotsFired++;
-
-	m_flAccuracy = ((m_iShotsFired * m_iShotsFired * m_iShotsFired) / AK47_ACCURACY_DIVISOR) + 0.35f;
-
-	if (m_flAccuracy > 1.25f)
-		m_flAccuracy = 1.25f;
-
 	if (m_iClip <= 0)
 	{
 		if (m_fFireOnEmpty)
@@ -115,6 +129,8 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
+	m_iShotsFired++;
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -129,7 +145,10 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 #else
 	float flBaseDamage = AK47_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 2, BULLET_PLAYER_762MM,
+	const gw::WeaponMechanicsConfig &config = AK47Mechanics();
+	const gw::ShotOffset offset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, config.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * offset.x + gpGlobals->v_up * offset.y;
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 2, BULLET_PLAYER_762MM,
 		flBaseDamage, AK47_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
@@ -153,22 +172,10 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.9f;
 
-	if (m_pPlayer->pev->velocity.Length2D() > 0)
-	{
-		KickBack(1.5, 0.45, 0.225, 0.05, 6.5, 2.5, 7);
-	}
-	else if (!(m_pPlayer->pev->flags & FL_ONGROUND))
-	{
-		KickBack(2.0, 1.0, 0.5, 0.35, 9.0, 6.0, 5);
-	}
-	else if (m_pPlayer->pev->flags & FL_DUCKING)
-	{
-		KickBack(0.9, 0.35, 0.15, 0.025, 5.5, 1.5, 9);
-	}
-	else
-	{
-		KickBack(1.0, 0.375, 0.175, 0.0375, 5.75, 1.75, 8);
-	}
+	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex);
+	m_pPlayer->pev->punchangle.x -= recoil.vertical * config.viewScale;
+	m_pPlayer->pev->punchangle.y += recoil.horizontal * config.viewScale;
+	gw::CommitShot(config, m_ModernState, gpGlobals->time);
 }
 
 void CAK47::Reload()
@@ -179,6 +186,7 @@ void CAK47::Reload()
 
 		m_flAccuracy = 0.2f;
 		m_iShotsFired = 0;
+		ResetAK47Mechanics(this);
 		m_bDelayFire = false;
 	}
 }

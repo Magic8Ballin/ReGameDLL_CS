@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "../../../../game_shared/weapon_mechanics.h"
+
 class CBasePlayer;
 
 const float MAX_NORMAL_BATTERY    = 100.0f;
@@ -443,6 +445,7 @@ public:
 	float m_flAccuracy;
 	float m_flLastFire;
 	int m_iShotsFired;
+	gw::WeaponMechanicsState m_ModernState;
 	Vector m_vVecAiming;
 	string_t model_name;
 	float m_flGlock18Shoot;			// time to shoot the remaining bullets of the glock18 burst fire

@@ -4989,6 +4989,9 @@ int EXT_FUNC GetWeaponData(edict_t *pEdict, struct weapon_data_s *info)
 					item->m_fInSpecialReload = weapon->m_fInSpecialReload;
 					item->m_fInZoom = weapon->m_iShotsFired;
 					item->m_fAimedDamage = weapon->m_flLastFire;
+					item->fuser1 = weapon->m_ModernState.firePenalty;
+					item->fuser4 = weapon->m_ModernState.recoilIndex;
+					item->iuser2 = (int)(weapon->m_ModernState.lastShotTime * 1000.0f);
 					item->m_iWeaponState = weapon->m_iWeaponState;
 					item->fuser2 = weapon->m_flStartThrow;
 					item->fuser3 = weapon->m_flReleaseThrow;
