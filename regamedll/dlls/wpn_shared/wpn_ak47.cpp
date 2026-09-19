@@ -152,11 +152,7 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		flBaseDamage, AK47_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 	vecDir = Vector(offset.x, offset.y, 0.0f);
 
-#ifdef CLIENT_WEAPONS
-	flag = FEV_NOTHOST;
-#else
 	flag = 0;
-#endif
 
 	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireAK47, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), FALSE, TRUE);
