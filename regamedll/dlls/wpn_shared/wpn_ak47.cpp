@@ -150,6 +150,7 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	vecAiming = vecAiming + gpGlobals->v_right * offset.x + gpGlobals->v_up * offset.y;
 	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 2, BULLET_PLAYER_762MM,
 		flBaseDamage, AK47_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
+	vecDir = Vector(offset.x, offset.y, 0.0f);
 
 #ifdef CLIENT_WEAPONS
 	flag = FEV_NOTHOST;
