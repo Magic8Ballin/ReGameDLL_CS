@@ -174,8 +174,9 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.9f;
 
 	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex);
-	m_pPlayer->pev->punchangle.x -= recoil.vertical * config.viewScale;
-	m_pPlayer->pev->punchangle.y += recoil.horizontal * config.viewScale;
+	// Procedural recoil is already converted to GoldSrc view degrees by GetRecoil.
+	m_pPlayer->pev->punchangle.x -= recoil.vertical;
+	m_pPlayer->pev->punchangle.y += recoil.horizontal;
 	gw::CommitShot(config, m_ModernState, gpGlobals->time);
 }
 
