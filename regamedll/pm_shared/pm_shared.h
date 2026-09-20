@@ -58,13 +58,16 @@
 #define PLAYER_LONGJUMP_SPEED     350.0f // how fast we longjump
 
 // Ducking time
-#define TIME_TO_DUCK 0.4
+#define TIME_TO_DUCK 0.2
+#define TIME_TO_UNDUCK 0.2
 #define STUCK_MOVEUP 1
 
 #define PM_VEC_DUCK_HULL_MIN -18
 #define PM_VEC_HULL_MIN      -36
-#define PM_VEC_DUCK_VIEW     12
-#define PM_VEC_VIEW          17
+#define PM_CSGO_STAND_EYE_HEIGHT 64
+#define PM_CSGO_DUCK_EYE_HEIGHT  46
+#define PM_VEC_DUCK_VIEW     (PM_CSGO_DUCK_EYE_HEIGHT + PM_VEC_DUCK_HULL_MIN)
+#define PM_VEC_VIEW          (PM_CSGO_STAND_EYE_HEIGHT + PM_VEC_HULL_MIN)
 
 #define PM_PLAYER_MAX_SAFE_FALL_SPEED   580 // approx 20 feet
 #define PM_PLAYER_MIN_BOUNCE_SPEED      350

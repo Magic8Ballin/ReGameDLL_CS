@@ -78,14 +78,14 @@
 #define VEC_HULL_MIN		Vector(-16, -16, -36)
 #define VEC_HULL_MAX		Vector(16, 16, 36)
 
-#define VEC_VIEW			Vector(0, 0, 17)
+#define VEC_VIEW			Vector(0, 0, 28)
 
 #define VEC_SPOT_HULL_MIN	Vector(-16, -16, 0)
 #define VEC_SPOT_HULL_MAX	Vector(16, 16, 72)
 
 #define VEC_DUCK_HULL_MIN	Vector(-16, -16, -18)
-#define VEC_DUCK_HULL_MAX	Vector(16, 16, 32)
-#define VEC_DUCK_VIEW		Vector(0, 0, 12)
+#define VEC_DUCK_HULL_MAX	Vector(16, 16, 36)
+#define VEC_DUCK_VIEW		Vector(0, 0, 28)
 
 #define PRECACHE_SOUND_ARRAY(a) \
 	{ for (int i = 0; i < ARRAYSIZE(a); i++) PRECACHE_SOUND((char *)a[i]); }
