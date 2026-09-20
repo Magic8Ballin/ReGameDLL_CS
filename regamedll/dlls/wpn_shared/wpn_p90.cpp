@@ -113,6 +113,13 @@ void CP90::P90Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -124,13 +131,15 @@ void CP90::P90Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = P90_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 1, BULLET_PLAYER_57MM, flBaseDamage, P90_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 1, BULLET_PLAYER_57MM, flBaseDamage, P90_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
 	flag = FEV_NOTHOST;
@@ -152,19 +161,19 @@ void CP90::P90Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		KickBack(0.9, 0.45, 0.35, 0.04, 5.25, 3.5, 4);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		KickBack(0.45, 0.3, 0.2, 0.0275, 4.0, 2.25, 7);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		KickBack(0.275, 0.2, 0.125, 0.02, 3.0, 1.0, 9);
+		ApplyModernRecoil();
 	}
 	else
 	{
-		KickBack(0.3, 0.225, 0.125, 0.02, 3.25, 1.25, 8);
+		ApplyModernRecoil();
 	}
 }
 
@@ -202,3 +211,4 @@ float CP90::GetMaxSpeed()
 {
 	return P90_MAX_SPEED;
 }
+

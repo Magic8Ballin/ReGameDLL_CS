@@ -131,6 +131,13 @@ void CSG552::SG552Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -142,13 +149,15 @@ void CSG552::SG552Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = SG552_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 2, BULLET_PLAYER_556MM,
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 2, BULLET_PLAYER_556MM,
 		flBaseDamage, SG552_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
@@ -171,19 +180,19 @@ void CSG552::SG552Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		KickBack(1.0, 0.45, 0.28, 0.04, 4.25, 2.5, 7);
+		ApplyModernRecoil();
 	}
 	else if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		KickBack(1.25, 0.45, 0.22, 0.18, 6.0, 4.0, 5);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		KickBack(0.6, 0.35, 0.2, 0.0125, 3.7, 2.0, 10);
+		ApplyModernRecoil();
 	}
 	else
 	{
-		KickBack(0.625, 0.375, 0.25, 0.0125, 4.0, 2.25, 9);
+		ApplyModernRecoil();
 	}
 }
 
@@ -229,3 +238,4 @@ float CSG552::GetMaxSpeed()
 
 	return SG552_MAX_SPEED_ZOOM;
 }
+

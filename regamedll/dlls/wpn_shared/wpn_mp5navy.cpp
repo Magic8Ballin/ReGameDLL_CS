@@ -106,6 +106,13 @@ void CMP5N::MP5NFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -114,13 +121,15 @@ void CMP5N::MP5NFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = MP5N_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 1, BULLET_PLAYER_9MM,
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 1, BULLET_PLAYER_9MM,
 		flBaseDamage, MP5N_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
@@ -146,19 +155,19 @@ void CMP5N::MP5NFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		KickBack(0.9, 0.475, 0.35, 0.0425, 5.0, 3.0, 6);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		KickBack(0.5, 0.275, 0.2, 0.03, 3.0, 2.0, 10);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		KickBack(0.225, 0.15, 0.1, 0.015, 2.0, 1.0, 10);
+		ApplyModernRecoil();
 	}
 	else
 	{
-		KickBack(0.25, 0.175, 0.125, 0.02, 2.25, 1.25, 10);
+		ApplyModernRecoil();
 	}
 }
 
@@ -191,3 +200,4 @@ void CMP5N::WeaponIdle()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 20.0f;
 	SendWeaponAnim(MP5N_IDLE1, UseDecrement() != FALSE);
 }
+

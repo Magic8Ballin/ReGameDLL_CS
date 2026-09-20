@@ -107,6 +107,7 @@ void CXM1014::PrimaryAttack()
 
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+	const float modernInaccuracy = ModernInaccuracy();
 	m_iClip--;
 
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
@@ -124,7 +125,7 @@ void CXM1014::PrimaryAttack()
 	float flBaseDamage = XM1014_DAMAGE;
 #endif
 
-	Vector vecCone(XM1014_CONE_VECTOR);
+	Vector vecCone(modernInaccuracy, modernInaccuracy, 0.0f);
 
 #ifdef REGAMEDLL_FIXES
 	m_pPlayer->FireBuckshots(6, vecSrc, vecAiming, vecCone, 3048.0f, 0, flBaseDamage, m_pPlayer->pev);
@@ -168,17 +169,7 @@ void CXM1014::PrimaryAttack()
 
 	m_fInSpecialReload = 0;
 
-#ifdef REGAMEDLL_ADD
-	if (m_pPlayer->pev->flags & FL_ONGROUND)
-		KickBack(UTIL_SharedRandomLong(m_pPlayer->random_seed + 1, 3, 5), 0.0, 0.0, 0.0, 0.0, 0.0, 0);
-	else
-		KickBack(UTIL_SharedRandomLong(m_pPlayer->random_seed + 1, 7, 10), 0.0, 0.0, 0.0, 0.0, 0.0, 0);
-#else
-	if (m_pPlayer->pev->flags & FL_ONGROUND)
-		m_pPlayer->pev->punchangle.x -= UTIL_SharedRandomLong(m_pPlayer->random_seed + 1, 3, 5);
-	else
-		m_pPlayer->pev->punchangle.x -= UTIL_SharedRandomLong(m_pPlayer->random_seed + 1, 7, 10);
-#endif
+	ApplyModernRecoil();
 }
 
 void CXM1014::Reload()
@@ -231,3 +222,4 @@ void CXM1014::WeaponIdle()
 		}
 	}
 }
+

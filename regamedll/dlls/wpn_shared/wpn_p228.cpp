@@ -139,6 +139,13 @@ void CP228::P228Fire(float flSpread, float flCycleTime, BOOL fUseSemi)
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	SetPlayerShieldAnim();
@@ -151,13 +158,15 @@ void CP228::P228Fire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = P228_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 4096, 1, BULLET_PLAYER_357SIG, flBaseDamage, P228_RANGE_MODIFER, m_pPlayer->pev, true, m_pPlayer->random_seed);
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 4096, 1, BULLET_PLAYER_357SIG, flBaseDamage, P228_RANGE_MODIFER, m_pPlayer->pev, true, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
 	flag = FEV_NOTHOST;
@@ -177,9 +186,9 @@ void CP228::P228Fire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0f;
 #ifdef REGAMEDLL_ADD
-	KickBack(2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0);
+	ApplyModernRecoil();
 #else
-	m_pPlayer->pev->punchangle.x -= 2;
+	ApplyModernRecoil();
 #endif
 	ResetPlayerShieldAnim();
 }
@@ -223,3 +232,4 @@ void CP228::WeaponIdle()
 		SendWeaponAnim(P228_IDLE, UseDecrement() != FALSE);
 	}
 }
+

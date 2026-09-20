@@ -146,6 +146,13 @@ void CELITE::ELITEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->m_iWeaponVolume = BIG_EXPLOSION_VOLUME;
 	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
@@ -156,6 +163,8 @@ void CELITE::ELITEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef CLIENT_WEAPONS
 	flag = FEV_NOTHOST;
@@ -175,7 +184,7 @@ void CELITE::ELITEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 		m_iWeaponState &= ~WPNSTATE_ELITE_LEFT;
 
 		vecSrc -= gpGlobals->v_right * 5;
-		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread,
+		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f,
 			8192, BULLET_PLAYER_9MM, 1, flBaseDamage, ELITE_RANGE_MODIFER, m_pPlayer->pev, true, m_pPlayer->random_seed);
 
 		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireELITE_LEFT, 0, (float *)&g_vecZero, (float *)&g_vecZero, flTimeDiff, vecDir.x,
@@ -187,7 +196,7 @@ void CELITE::ELITEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 		m_iWeaponState |= WPNSTATE_ELITE_LEFT;
 
 		vecSrc += gpGlobals->v_right * 5;
-		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread,
+		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f,
 			8192, BULLET_PLAYER_9MM, 1, flBaseDamage, ELITE_RANGE_MODIFER, m_pPlayer->pev, true, m_pPlayer->random_seed);
 
 		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireELITE_RIGHT, 0, (float *)&g_vecZero, (float *)&g_vecZero, flTimeDiff, vecDir.x,
@@ -201,9 +210,9 @@ void CELITE::ELITEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0f;
 #ifdef REGAMEDLL_ADD
-	KickBack(2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0);
+	ApplyModernRecoil();
 #else
-	m_pPlayer->pev->punchangle.x -= 2.0f;
+	ApplyModernRecoil();
 #endif
 }
 
@@ -236,3 +245,4 @@ void CELITE::WeaponIdle()
 		}
 	}
 }
+

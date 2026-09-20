@@ -269,6 +269,7 @@ set(GAMEDLL_SRCS
 	"dlls/addons/trigger_random.cpp"
 	"dlls/addons/trigger_setorigin.cpp"
 	"dlls/wpn_shared/wpn_ak47.cpp"
+	"dlls/wpn_shared/weapon_modern.cpp"
 	"dlls/wpn_shared/wpn_aug.cpp"
 	"dlls/wpn_shared/wpn_awp.cpp"
 	"dlls/wpn_shared/wpn_c4.cpp"

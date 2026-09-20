@@ -145,6 +145,13 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -156,13 +163,15 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = bFireBurst ? m_flBaseDamageBurst : CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = bFireBurst ? FAMAS_DAMAGE_BURST : FAMAS_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 2, BULLET_PLAYER_556MM,
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 2, BULLET_PLAYER_556MM,
 		flBaseDamage, FAMAS_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
@@ -191,19 +200,19 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 
 	if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		KickBack(1.0, 0.45, 0.275, 0.05, 4.0, 2.5, 7);
+		ApplyModernRecoil();
 	}
 	else if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		KickBack(1.25, 0.45, 0.22, 0.18, 5.5, 4.0, 5);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		KickBack(0.575, 0.325, 0.2, 0.011, 3.25, 2.0, 8);
+		ApplyModernRecoil();
 	}
 	else
 	{
-		KickBack(0.625, 0.375, 0.25, 0.0125, 3.5, 2.25, 8);
+		ApplyModernRecoil();
 	}
 
 	if (bFireBurst)
@@ -247,3 +256,4 @@ void CFamas::WeaponIdle()
 		SendWeaponAnim(FAMAS_IDLE1, UseDecrement() != FALSE);
 	}
 }
+

@@ -105,6 +105,13 @@ void CMAC10::MAC10Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
+	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+
+	flSpread = ModernInaccuracy();
+
+	flCycleTime = modernConfig.cycleTime;
+
+
 	m_iClip--;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -116,13 +123,15 @@ void CMAC10::MAC10Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	vecSrc = m_pPlayer->GetGunPosition();
 	vecAiming = gpGlobals->v_forward;
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed, flSpread, modernConfig.baseSpread);
+	vecAiming = vecAiming + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 #ifdef REGAMEDLL_API
 	float flBaseDamage = CSPlayerWeapon()->m_flBaseDamage;
 #else
 	float flBaseDamage = MAC10_DAMAGE;
 #endif
-	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, flSpread, 8192, 1, BULLET_PLAYER_45ACP,
+	vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 1, BULLET_PLAYER_45ACP,
 		flBaseDamage, MAC10_RANGE_MODIFER, m_pPlayer->pev, false, m_pPlayer->random_seed);
 
 #ifdef CLIENT_WEAPONS
@@ -145,19 +154,19 @@ void CMAC10::MAC10Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		KickBack(1.3, 0.55, 0.4, 0.05, 4.75, 3.75, 5);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		KickBack(0.9, 0.45, 0.25, 0.035, 3.5, 2.75, 7);
+		ApplyModernRecoil();
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		KickBack(0.75, 0.4, 0.175, 0.03, 2.75, 2.5, 10);
+		ApplyModernRecoil();
 	}
 	else
 	{
-		KickBack(0.775, 0.425, 0.2, 0.03, 3.0, 2.75, 9);
+		ApplyModernRecoil();
 	}
 }
 
@@ -190,3 +199,4 @@ void CMAC10::WeaponIdle()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 20.0f;
 	SendWeaponAnim(MAC10_IDLE1, UseDecrement() != FALSE);
 }
+
