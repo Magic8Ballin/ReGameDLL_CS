@@ -3076,6 +3076,28 @@ float PM_CalcRoll(vec_t *angles, vec_t *velocity, float rollangle, float rollspe
 
 void PM_DropPunchAngle(vec_t *punchangle)
 {
+	if (pmove->fuser4 > 0.5f)
+	{
+		const float frameTime = pmove->frametime;
+		VectorScale(punchangle, expf(-8.0f * frameTime), punchangle);
+
+		real_t len = VectorNormalize(punchangle);
+		len = Q_max(len - 36.0f * frameTime, 0.0f);
+		VectorScale(punchangle, len, punchangle);
+
+		VectorMA(punchangle, frameTime * 0.5f, pmove->vuser1, punchangle);
+		VectorScale(pmove->vuser1, expf(-4.5f * frameTime), pmove->vuser1);
+		VectorMA(punchangle, frameTime * 0.5f, pmove->vuser1, punchangle);
+
+		if (DotProduct(punchangle, punchangle) < 0.00000001f && DotProduct(pmove->vuser1, pmove->vuser1) < 0.00000001f)
+		{
+			VectorClear(punchangle);
+			VectorClear(pmove->vuser1);
+			pmove->fuser4 = 0.0f;
+		}
+		return;
+	}
+
 	real_t len;
 
 	len = VectorNormalize(punchangle);

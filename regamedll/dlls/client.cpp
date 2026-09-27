@@ -5052,6 +5052,8 @@ void EXT_FUNC UpdateClientData(const edict_t *ent, int sendweapons, struct clien
 	cd->velocity = pev->velocity;
 	cd->view_ofs = pev->view_ofs;
 	cd->punchangle = pev->punchangle;
+	cd->vuser1 = pev->vuser1;
+	cd->fuser4 = pev->fuser4;
 	cd->bInDuck = pev->bInDuck;
 	cd->flTimeStepSound = pev->flTimeStepSound;
 	cd->flDuckTime = pev->flDuckTime;

@@ -133,6 +133,24 @@ void CAUG::AUGFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	}
 
 	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+	const gw::WeaponMechanicsConfig *recoilConfig = &modernConfig;
+	if (m_pPlayer->pev->fov != DEFAULT_FOV)
+	{
+		static bool scopedLoaded = false;
+		static gw::WeaponMechanicsConfig scopedConfig;
+		if (!scopedLoaded)
+		{
+			scopedLoaded = true;
+			scopedConfig = modernConfig;
+			int length = 0;
+			char *json = (char *)LOAD_FILE_FOR_ME("configs/weapons/aug_scoped.json", &length);
+			gw::WeaponMechanicsConfig parsed;
+			if (json && gw::ParseConfig(json, parsed)) scopedConfig = parsed;
+			else ALERT(at_console, "Gloveworks: invalid/missing configs/weapons/aug_scoped.json; using unscoped recoil\n");
+			if (json) FREE_FILE(json);
+		}
+		recoilConfig = &scopedConfig;
+	}
 
 	flSpread = ModernInaccuracy();
 
@@ -181,19 +199,31 @@ void CAUG::AUGFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		ApplyModernRecoil();
+		const gw::RecoilPoint recoil = gw::GetRecoil(*recoilConfig, m_ModernState.recoilIndex);
+		m_pPlayer->pev->punchangle.x -= recoil.vertical;
+		m_pPlayer->pev->punchangle.y += recoil.horizontal;
+		gw::CommitShot(*recoilConfig, m_ModernState, gpGlobals->time);
 	}
 	else if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		ApplyModernRecoil();
+		const gw::RecoilPoint recoil = gw::GetRecoil(*recoilConfig, m_ModernState.recoilIndex);
+		m_pPlayer->pev->punchangle.x -= recoil.vertical;
+		m_pPlayer->pev->punchangle.y += recoil.horizontal;
+		gw::CommitShot(*recoilConfig, m_ModernState, gpGlobals->time);
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		ApplyModernRecoil();
+		const gw::RecoilPoint recoil = gw::GetRecoil(*recoilConfig, m_ModernState.recoilIndex);
+		m_pPlayer->pev->punchangle.x -= recoil.vertical;
+		m_pPlayer->pev->punchangle.y += recoil.horizontal;
+		gw::CommitShot(*recoilConfig, m_ModernState, gpGlobals->time);
 	}
 	else
 	{
-		ApplyModernRecoil();
+		const gw::RecoilPoint recoil = gw::GetRecoil(*recoilConfig, m_ModernState.recoilIndex);
+		m_pPlayer->pev->punchangle.x -= recoil.vertical;
+		m_pPlayer->pev->punchangle.y += recoil.horizontal;
+		gw::CommitShot(*recoilConfig, m_ModernState, gpGlobals->time);
 	}
 }
 

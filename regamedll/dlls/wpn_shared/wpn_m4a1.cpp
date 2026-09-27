@@ -212,8 +212,9 @@ void CM4A1::M4A1Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5f;
 
 	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex);
-	m_pPlayer->pev->punchangle.x -= recoil.vertical;
-	m_pPlayer->pev->punchangle.y += recoil.horizontal;
+	m_pPlayer->pev->vuser1.x -= recoil.vertical;
+	m_pPlayer->pev->vuser1.y += recoil.horizontal;
+	m_pPlayer->pev->fuser4 = 1.0f;
 	gw::CommitShot(config, m_ModernState, gpGlobals->time);
 }
 

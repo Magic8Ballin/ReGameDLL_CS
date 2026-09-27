@@ -64,6 +64,8 @@ edict_t *CGameRules::GetPlayerSpawnSpot(CBasePlayer *pPlayer)
 	pPlayer->pev->velocity = g_vecZero;
 	pPlayer->pev->angles = pentSpawnSpot->v.angles;
 	pPlayer->pev->punchangle = g_vecZero;
+	pPlayer->pev->vuser1 = g_vecZero;
+	pPlayer->pev->fuser4 = 0.0f;
 	pPlayer->pev->fixangle = 1;
 
 	return pentSpawnSpot;

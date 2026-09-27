@@ -170,9 +170,10 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.9f;
 
 	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex);
-	// Procedural recoil is already converted to GoldSrc view degrees by GetRecoil.
-	m_pPlayer->pev->punchangle.x -= recoil.vertical;
-	m_pPlayer->pev->punchangle.y += recoil.horizontal;
+	// CS:GO recoil adds velocity; movement integrates and decays the aim-punch angle.
+	m_pPlayer->pev->vuser1.x -= recoil.vertical;
+	m_pPlayer->pev->vuser1.y += recoil.horizontal;
+	m_pPlayer->pev->fuser4 = 1.0f;
 	gw::CommitShot(config, m_ModernState, gpGlobals->time);
 }
 
