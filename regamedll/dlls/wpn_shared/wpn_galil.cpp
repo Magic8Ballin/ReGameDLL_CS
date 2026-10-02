@@ -150,7 +150,7 @@ void CGalil::GalilFire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	if (!(iFlags() & ITEM_FLAG_NOFIREUNDERWATER) && m_pPlayer->pev->waterlevel == 3)
 		flag = 0;
 #endif
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGalil, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGalil, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 		int(m_pPlayer->pev->punchangle.x * 10000000), int(m_pPlayer->pev->punchangle.y * 10000000), FALSE, FALSE);
 
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;

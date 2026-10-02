@@ -825,6 +825,12 @@ void CBasePlayerWeapon::FireRemaining(int &shotsFired, float &shootTime, BOOL bI
 
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecDir;
+	const gw::WeaponMechanicsConfig &modernConfig = bIsGlock
+		? ModernMechanics("glock18_burst") : ModernMechanics("famas_burst");
+	const float modernSpread = ModernInaccuracy(modernConfig);
+	const gw::ShotOffset modernOffset = gw::ComputeShotOffset(m_pPlayer->random_seed + shotsFired,
+		modernSpread, modernConfig.baseSpread);
+	Vector vecAiming = gpGlobals->v_forward + gpGlobals->v_right * modernOffset.x + gpGlobals->v_up * modernOffset.y;
 
 	int flag;
 #ifdef CLIENT_WEAPONS
@@ -841,16 +847,16 @@ void CBasePlayerWeapon::FireRemaining(int &shotsFired, float &shootTime, BOOL bI
 
 	if (bIsGlock)
 	{
-		vecDir = m_pPlayer->FireBullets3(vecSrc, gpGlobals->v_forward, 0.05, 8192, 1, BULLET_PLAYER_9MM, flBaseDamage, 0.9, m_pPlayer->pev, true, m_pPlayer->random_seed);
+		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 1, BULLET_PLAYER_9MM, flBaseDamage, 0.9, m_pPlayer->pev, true, m_pPlayer->random_seed);
 #ifndef REGAMEDLL_FIXES
 		--m_pPlayer->ammo_9mm;
 #endif
-		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGlock18, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGlock18, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 			int(m_pPlayer->pev->punchangle.x * 10000), int(m_pPlayer->pev->punchangle.y * 10000), m_iClip == 0, FALSE);
 	}
 	else
 	{
-		vecDir = m_pPlayer->FireBullets3(vecSrc, gpGlobals->v_forward, m_fBurstSpread, 8192, 2, BULLET_PLAYER_556MM, flBaseDamage, 0.96, m_pPlayer->pev, false, m_pPlayer->random_seed);
+		vecDir = m_pPlayer->FireBullets3(vecSrc, vecAiming, 0.0f, 8192, 2, BULLET_PLAYER_556MM, flBaseDamage, 0.96, m_pPlayer->pev, false, m_pPlayer->random_seed);
 #ifndef REGAMEDLL_FIXES
 		--m_pPlayer->ammo_556nato;
 #endif
@@ -861,11 +867,12 @@ void CBasePlayerWeapon::FireRemaining(int &shotsFired, float &shootTime, BOOL bI
 			flag = 0;
 #endif
 
-		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireFamas, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+		PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireFamas, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 			int(m_pPlayer->pev->punchangle.x * 10000000), int(m_pPlayer->pev->punchangle.y * 10000000), FALSE, FALSE);
 	}
 
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
+	ApplyModernRecoil(modernConfig, true);
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 
 	if (++shotsFired != 3)

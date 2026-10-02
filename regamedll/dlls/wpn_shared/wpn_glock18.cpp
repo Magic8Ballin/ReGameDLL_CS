@@ -205,9 +205,9 @@ void CGLOCK18::GLOCK18Fire(float flSpread, float flCycleTime, BOOL bFireBurst)
 		return;
 	}
 
-	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+	const gw::WeaponMechanicsConfig &modernConfig = bFireBurst ? ModernMechanics("glock18_burst") : ModernMechanics();
 
-	flSpread = ModernInaccuracy();
+	flSpread = ModernInaccuracy(modernConfig);
 
 	flCycleTime = modernConfig.cycleTime;
 
@@ -242,7 +242,7 @@ void CGLOCK18::GLOCK18Fire(float flSpread, float flCycleTime, BOOL bFireBurst)
 	flag = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGlock18, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireGlock18, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), m_iClip == 0, FALSE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -262,7 +262,7 @@ void CGLOCK18::GLOCK18Fire(float flSpread, float flCycleTime, BOOL bFireBurst)
 		m_flGlock18Shoot = gpGlobals->time + 0.1f;
 	}
 
-	ApplyModernRecoil();
+	ApplyModernRecoil(modernConfig, bFireBurst != FALSE);
 	ResetPlayerShieldAnim();
 }
 

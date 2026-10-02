@@ -101,7 +101,7 @@ void CAK47::PrimaryAttack()
 {
 	const gw::WeaponMechanicsConfig &config = AK47Mechanics();
 	gw::UpdateState(config, m_ModernState, gpGlobals->time, (m_pPlayer->pev->flags & FL_DUCKING) != 0);
-	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(),
+	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(), m_pPlayer->pev->velocity.z,
 		GetMaxSpeed(), (m_pPlayer->pev->flags & FL_DUCKING) != 0, (m_pPlayer->pev->flags & FL_ONGROUND) != 0,
 		m_pPlayer->pev->movetype == MOVETYPE_FLY);
 	AK47Fire(inaccuracy, config.cycleTime, FALSE);
@@ -154,7 +154,7 @@ void CAK47::AK47Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 	flag = 0;
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireAK47, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireAK47, 0, (float *)&g_vecZero, (float *)&g_vecZero, offset.x, offset.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), FALSE, TRUE);
 
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;

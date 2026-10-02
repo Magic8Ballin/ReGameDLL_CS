@@ -19,6 +19,18 @@ const char *ProfileName(int id)
 }
 gw::WeaponMechanicsConfig g_profiles[WEAPON_P90 + 1];
 bool g_loaded[WEAPON_P90 + 1] = { false };
+
+struct NamedProfile
+{
+	const char *name;
+	bool loaded;
+	gw::WeaponMechanicsConfig config;
+};
+
+NamedProfile g_namedProfiles[] = {
+	{ "famas_burst", false }, { "glock18_burst", false }, { "usp_suppressed", false },
+	{ "awp_scoped", false }, { "scout_scoped", false }, { "g3sg1_scoped", false }, { "sg550_scoped", false }
+};
 }
 
 const gw::WeaponMechanicsConfig &CBasePlayerWeapon::ModernMechanics()
@@ -42,21 +54,53 @@ const gw::WeaponMechanicsConfig &CBasePlayerWeapon::ModernMechanics()
 	return g_profiles[id];
 }
 
+const gw::WeaponMechanicsConfig &CBasePlayerWeapon::ModernMechanics(const char *profileName)
+{
+	for (unsigned int index = 0; index < sizeof(g_namedProfiles) / sizeof(g_namedProfiles[0]); ++index)
+	{
+		NamedProfile &profile = g_namedProfiles[index];
+		if (strcmp(profile.name, profileName)) continue;
+		if (!profile.loaded)
+		{
+			profile.loaded = true;
+			profile.config = gw::Defaults(false);
+			char path[96]; sprintf(path, "configs/weapons/%s.json", profile.name);
+			int length = 0; char *json = (char *)LOAD_FILE_FOR_ME(path, &length);
+			gw::WeaponMechanicsConfig parsed;
+			if (json && gw::ParseConfig(json, parsed)) profile.config = parsed;
+			else ALERT(at_console, "Gloveworks: invalid/missing %s; using safe defaults\n", path);
+			if (json) FREE_FILE(json);
+		}
+		return profile.config;
+	}
+	return ModernMechanics();
+}
+
 float CBasePlayerWeapon::ModernInaccuracy()
 {
-	const gw::WeaponMechanicsConfig &config = ModernMechanics();
+	return ModernInaccuracy(ModernMechanics());
+}
+
+float CBasePlayerWeapon::ModernInaccuracy(const gw::WeaponMechanicsConfig &config)
+{
 	gw::UpdateState(config, m_ModernState, gpGlobals->time, (m_pPlayer->pev->flags & FL_DUCKING) != 0);
-	return gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(), GetMaxSpeed(),
+	return gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(), m_pPlayer->pev->velocity.z, GetMaxSpeed(),
 		(m_pPlayer->pev->flags & FL_DUCKING) != 0, (m_pPlayer->pev->flags & FL_ONGROUND) != 0,
 		m_pPlayer->pev->movetype == MOVETYPE_FLY);
 }
 
 void CBasePlayerWeapon::ApplyModernRecoil()
 {
-	const gw::WeaponMechanicsConfig &config = ModernMechanics();
-	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex, config.fullAuto ? -1 : m_pPlayer->random_seed);
-	m_pPlayer->pev->punchangle.x -= recoil.vertical;
-	m_pPlayer->pev->punchangle.y += recoil.horizontal;
+	ApplyModernRecoil(ModernMechanics());
+}
+
+void CBasePlayerWeapon::ApplyModernRecoil(const gw::WeaponMechanicsConfig &config, bool sequential)
+{
+	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex,
+		(config.fullAuto || sequential) ? -1 : m_pPlayer->random_seed);
+	m_pPlayer->pev->vuser1.x -= recoil.vertical;
+	m_pPlayer->pev->vuser1.y += recoil.horizontal;
+	m_pPlayer->pev->fuser4 = 1.0f;
 	gw::CommitShot(config, m_ModernState, gpGlobals->time);
 }
 

@@ -145,9 +145,9 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 		return;
 	}
 
-	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+	const gw::WeaponMechanicsConfig &modernConfig = bFireBurst ? ModernMechanics("famas_burst") : ModernMechanics();
 
-	flSpread = ModernInaccuracy();
+	flSpread = ModernInaccuracy(modernConfig);
 
 	flCycleTime = modernConfig.cycleTime;
 
@@ -186,7 +186,7 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 			flag = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireFamas, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireFamas, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 		int(m_pPlayer->pev->punchangle.x * 10000000), int(m_pPlayer->pev->punchangle.y * 10000000), FALSE, FALSE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -200,19 +200,19 @@ void CFamas::FamasFire(float flSpread, float flCycleTime, BOOL fUseAutoAim, BOOL
 
 	if (m_pPlayer->pev->velocity.Length2D() > 0)
 	{
-		ApplyModernRecoil();
+		ApplyModernRecoil(modernConfig);
 	}
 	else if (!(m_pPlayer->pev->flags & FL_ONGROUND))
 	{
-		ApplyModernRecoil();
+		ApplyModernRecoil(modernConfig);
 	}
 	else if (m_pPlayer->pev->flags & FL_DUCKING)
 	{
-		ApplyModernRecoil();
+		ApplyModernRecoil(modernConfig);
 	}
 	else
 	{
-		ApplyModernRecoil();
+		ApplyModernRecoil(modernConfig);
 	}
 
 	if (bFireBurst)

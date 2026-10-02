@@ -200,9 +200,10 @@ void CUSP::USPFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 
-	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+	const gw::WeaponMechanicsConfig &modernConfig = (m_iWeaponState & WPNSTATE_USP_SILENCED)
+		? ModernMechanics("usp_suppressed") : ModernMechanics();
 
-	flSpread = ModernInaccuracy();
+	flSpread = ModernInaccuracy(modernConfig);
 
 	flCycleTime = modernConfig.cycleTime;
 
@@ -239,7 +240,7 @@ void CUSP::USPFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 	flag = 0;
 #endif // CLIENT_WEAPONS
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireUSP, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireUSP, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 		(int)(m_pPlayer->pev->punchangle.x * 100), 0, m_iClip == 0, (m_iWeaponState & WPNSTATE_USP_SILENCED));
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
@@ -249,9 +250,9 @@ void CUSP::USPFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0f;
 #ifdef REGAMEDLL_ADD
-	ApplyModernRecoil();
+	ApplyModernRecoil(modernConfig);
 #else
-	ApplyModernRecoil();
+	ApplyModernRecoil(modernConfig);
 #endif
 	ResetPlayerShieldAnim();
 }

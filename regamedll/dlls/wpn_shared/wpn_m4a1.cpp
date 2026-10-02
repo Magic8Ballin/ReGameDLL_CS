@@ -126,7 +126,7 @@ void CM4A1::PrimaryAttack()
 {
 	const gw::WeaponMechanicsConfig &config = M4A1Mechanics();
 	gw::UpdateState(config, m_ModernState, gpGlobals->time, (m_pPlayer->pev->flags & FL_DUCKING) != 0);
-	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(),
+	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(), m_pPlayer->pev->velocity.z,
 		GetMaxSpeed(), (m_pPlayer->pev->flags & FL_DUCKING) != 0, (m_pPlayer->pev->flags & FL_ONGROUND) != 0,
 		m_pPlayer->pev->movetype == MOVETYPE_FLY);
 	M4A1Fire(inaccuracy, config.cycleTime, FALSE);
@@ -199,7 +199,7 @@ void CM4A1::M4A1Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	m_pPlayer->ammo_556nato--;
 #endif
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireM4A1, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireM4A1, 0, (float *)&g_vecZero, (float *)&g_vecZero, offset.x, offset.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), (m_iWeaponState & WPNSTATE_M4A1_SILENCED) == WPNSTATE_M4A1_SILENCED, FALSE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);

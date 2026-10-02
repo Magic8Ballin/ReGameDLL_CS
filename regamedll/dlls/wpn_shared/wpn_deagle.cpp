@@ -102,7 +102,7 @@ void CDEAGLE::PrimaryAttack()
 {
 	const gw::WeaponMechanicsConfig &config = DeagleMechanics();
 	gw::UpdateState(config, m_ModernState, gpGlobals->time, (m_pPlayer->pev->flags & FL_DUCKING) != 0);
-	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(),
+	const float inaccuracy = gw::ComputeInaccuracy(config, m_ModernState, m_pPlayer->pev->velocity.Length2D(), m_pPlayer->pev->velocity.z,
 		GetMaxSpeed(), (m_pPlayer->pev->flags & FL_DUCKING) != 0, (m_pPlayer->pev->flags & FL_ONGROUND) != 0,
 		m_pPlayer->pev->movetype == MOVETYPE_FLY);
 	DEAGLEFire(inaccuracy, config.cycleTime + 0.075f, FALSE);
@@ -173,7 +173,7 @@ void CDEAGLE::DEAGLEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 	flag = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireDeagle, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireDeagle, 0, (float *)&g_vecZero, (float *)&g_vecZero, offset.x, offset.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.y * 100), m_iClip == 0, TRUE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -184,10 +184,7 @@ void CDEAGLE::DEAGLEFire(float flSpread, float flCycleTime, BOOL fUseSemi)
 	}
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.8f;
-	const gw::RecoilPoint recoil = gw::GetRecoil(config, m_ModernState.recoilIndex, m_pPlayer->random_seed);
-	m_pPlayer->pev->punchangle.x -= recoil.vertical * config.viewScale;
-	m_pPlayer->pev->punchangle.y += recoil.horizontal * config.viewScale;
-	gw::CommitShot(config, m_ModernState, gpGlobals->time);
+	ApplyModernRecoil(config);
 	ResetPlayerShieldAnim();
 }
 

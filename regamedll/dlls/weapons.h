@@ -393,8 +393,11 @@ public:
 	void FireRemaining(int &shotsFired, float &shootTime, BOOL isGlock18);
 	void KickBack(float up_base, float lateral_base, float up_modifier, float lateral_modifier, float up_max, float lateral_max, int direction_change);
 	const gw::WeaponMechanicsConfig &ModernMechanics();
+	const gw::WeaponMechanicsConfig &ModernMechanics(const char *profileName);
 	float ModernInaccuracy();
+	float ModernInaccuracy(const gw::WeaponMechanicsConfig &config);
 	void ApplyModernRecoil();
+	void ApplyModernRecoil(const gw::WeaponMechanicsConfig &config, bool sequential = false);
 	void ResetModernMechanics();
 	void EjectBrassLate();
 	void MakeBeam();

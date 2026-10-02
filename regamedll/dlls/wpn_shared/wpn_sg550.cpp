@@ -117,6 +117,7 @@ void CSG550::SG550Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 {
 	Vector vecAiming, vecSrc, vecDir;
 	int flag;
+	const bool scoped = m_pPlayer->pev->fov != DEFAULT_FOV;
 
 	if (m_pPlayer->pev->fov == DEFAULT_FOV)
 	{
@@ -151,9 +152,9 @@ void CSG550::SG550Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		return;
 	}
 
-	const gw::WeaponMechanicsConfig &modernConfig = ModernMechanics();
+	const gw::WeaponMechanicsConfig &modernConfig = scoped ? ModernMechanics("sg550_scoped") : ModernMechanics();
 
-	flSpread = ModernInaccuracy();
+	flSpread = ModernInaccuracy(modernConfig);
 
 	flCycleTime = modernConfig.cycleTime;
 
@@ -185,7 +186,7 @@ void CSG550::SG550Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 	flag = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireSG550, 0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y,
+	PLAYBACK_EVENT_FULL(flag, m_pPlayer->edict(), m_usFireSG550, 0, (float *)&g_vecZero, (float *)&g_vecZero, modernOffset.x, modernOffset.y,
 		int(m_pPlayer->pev->punchangle.x * 100), int(m_pPlayer->pev->punchangle.x * 100), 5, FALSE);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -199,9 +200,9 @@ void CSG550::SG550Fire(float flSpread, float flCycleTime, BOOL fUseAutoAim)
 
 #ifdef REGAMEDLL_ADD
 	m_iDirection = 1; // force positive Y addition
-	ApplyModernRecoil();
+	ApplyModernRecoil(modernConfig);
 #else
-	ApplyModernRecoil();
+	ApplyModernRecoil(modernConfig);
 #endif
 }
 
